@@ -181,19 +181,20 @@ class ProcessManager implements \Countable
      * Forks the currently running process.
      *
      * @param callable $callable Callable with prototype like function(Ko\Process $p) {}
+     * @param int $sharedMemorySize
      *
      * @return Process
      * @throws \RuntimeException
      */
-    public function fork(callable $callable)
+    public function fork(callable $callable, $sharedMemorySize = 1024)
     {
-        return $this->internalFork($this->createProcess($callable));
+        return $this->internalFork($this->createProcess($callable, $sharedMemorySize));
     }
 
-    protected function createProcess(callable $callable)
+    protected function createProcess(callable $callable, $sharedMemorySize = 1024)
     {
         $p = new Process($callable);
-        $p->setSharedMemory(new SharedMemory());
+        $p->setSharedMemory(new SharedMemory($sharedMemorySize));
         $p->on('exit', function ($pid) use ($p) {
             $this->childProcessDie($pid, $p->getStatus());
         });
